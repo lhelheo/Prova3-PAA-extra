@@ -1,42 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int* MaiorValorDeVendaHaste(int p[], int n) {
-    int* V = (int*)malloc((n + 1) * sizeof(int)); 
-    int* C = (int*)malloc((n + 1) * sizeof(int)); 
+int max(int a, int b) { return (a > b)? a : b;}
 
+int MaiorValorDeVendaHaste(int p[], int n) {
+    int V[n+1];
     V[0] = 0;
-    for (int i = 0; i <= n; i++) {
-        C[i] = 0;
-    }
 
     for (int i = 1; i <= n; i++) {
         int maior_valor = -1; 
-        for (int j = 1; j <= i; j++) {
-            int valor_atual = p[j] + V[i - j];
-            if (valor_atual > maior_valor) {
-                maior_valor = valor_atual;
-                C[i] = j; 
-            }
+
+        if (i % 2 == 0) { // Se o tamanho é par, só podemos dividir no meio
+            maior_valor = max(maior_valor, V[i/2] + V[i/2]);
+        } else { // Se o tamanho é ímpar, podemos dividir em k e k+1
+            int k = i / 2;
+            maior_valor = max(maior_valor, p[k] + p[k + 1]);
         }
+
         V[i] = maior_valor;
     }
 
-    int* resultado = (int*)malloc(2 * sizeof(int)); 
-    resultado[0] = V[n];
-    resultado[1] = C[n];
-    return resultado;
+    return V[n];
 }
 
 int main() {
     int p[] = {0, 1, 5, 8, 9, 10, 17, 17, 20}; 
     int n = sizeof(p) / sizeof(p[0]) - 1; 
 
-    int* resultado = MaiorValorDeVendaHaste(p, n);
-
-    printf("Maior valor de venda: %d\n", resultado[0]);
-    printf("Ponto de corte otimo: %d\n", resultado[1]);
-    free(resultado);
+    printf("Maior valor de venda: %d\n", MaiorValorDeVendaHaste(p, n));
 
     return 0;
 }
