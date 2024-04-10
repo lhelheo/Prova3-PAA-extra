@@ -3,7 +3,17 @@
 
 #define N 9
 
-// Verifica se um número pode ser colocado na célula [linha][coluna]
+typedef struct {
+    int linha;
+    int coluna;
+} Posicao;
+
+typedef struct {
+    Posicao posicoes[3];
+    int somaEsperada;
+    int somaAtual;
+} Dica;
+
 bool EhValido(int tabuleiro[N][N], int linha, int coluna, int numero) {
     for (int i = 0; i < N; i++) {
         if (tabuleiro[linha][i] == numero || tabuleiro[i][coluna] == numero) {
@@ -32,35 +42,39 @@ bool EncontraProximaCelulaVazia(int tabuleiro[N][N], int *linha, int *coluna) {
     return false;
 }
 
-bool VerificaSoma(int tabuleiro[N][N], int dicas[N]) {
-    for (int i = 0; i < N; i++) { // Itera sobre todas as linhas do tabuleiro
-        int somaLinha = 0; // Inicializa a soma da linha atual
-        for (int j = 0; j < N; j++) { // Itera sobre todas as colunas da linha atual
-            somaLinha += tabuleiro[i][j]; // Soma os valores da linha
+bool VerificaSoma(int tabuleiro[N][N], Dica dicas[], int tamanhoDicas) {
+    for (int d = 0; d < tamanhoDicas; d++) {
+        int soma = 0;
+        for (int p = 0; p < 3; p++) { 
+            soma += tabuleiro[dicas[d].posicoes[p].linha][dicas[d].posicoes[p].coluna];
         }
-        if (somaLinha != dicas[i]) { // Compara a soma da linha com a dica correspondente
-            return false; // Se a soma da linha não respeitar a dica, retorna falso
+        if (soma > dicas[d].somaEsperada) {
+            return false; 
         }
     }
-    return true; // Se todas as linhas respeitarem as dicas, retorna verdadeiro
+    return true; 
 }
 
-bool ResolveSudoku(int tabuleiro[N][N], int dicas[N]) {
+
+bool ResolveSudoku(int tabuleiro[N][N], Dica dicas[], int tamanhoDicas) {
     int linha, coluna;
     if (!EncontraProximaCelulaVazia(tabuleiro, &linha, &coluna)) {
-        return VerificaSoma(tabuleiro, dicas); // Verifica se o estado final do tabuleiro respeita as dicas de soma
+        return VerificaSoma(tabuleiro, dicas, tamanhoDicas); 
     }
     for (int num = 1; num <= N; num++) {
         if (EhValido(tabuleiro, linha, coluna, num)) {
             tabuleiro[linha][coluna] = num;
-            if (ResolveSudoku(tabuleiro, dicas)) {
-                return true;
+            if (VerificaSoma(tabuleiro, dicas, tamanhoDicas)) {
+                if (ResolveSudoku(tabuleiro, dicas, tamanhoDicas)) {
+                    return true;
+                }
             }
             tabuleiro[linha][coluna] = 0;
         }
     }
     return false;
 }
+
 
 int main() {
     int tabuleiro[N][N] = {
@@ -74,10 +88,11 @@ int main() {
         {0, 0, 0, 4, 1, 9, 0, 0, 5},
         {0, 0, 0, 0, 8, 0, 0, 7, 9}
     };
-    int dicas[] = {20, 15, 25, 20, 30, 20, 15, 25, 20};
+   Dica dicas[] = {
+    {{{0, 0}, {0, 1}, {1, 1}}, 18},
+};
 
-    if (ResolveSudoku(tabuleiro, dicas)) {
-        // Imprime o tabuleiro resolvido
+    if (ResolveSudoku(tabuleiro, dicas, sizeof(dicas)/sizeof(dicas[0]))) {
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 printf("%d ", tabuleiro[i][j]);
